@@ -2,8 +2,9 @@ from torch.utils.data import Dataset
 import torch
 from PIL import Image
 from torchvision import transforms
-import pandas as pd
+import csv
 
+path = "dataset/short_train.csv"
 
 class CellDataset(Dataset):
     def __init__(self, csv):
@@ -39,9 +40,19 @@ class CellDataset(Dataset):
         }
         return tensor_image, target
 
-    def parsing(self, csv):
-        files_and_id = []
-        for i in csv:
+    def parse_label(label):
+        vec_ind = label.split("|")
+        out = [int(str(x) in vec_ind) for x in range(19)]
+        return out
+
+    def parsing_csv(path):
+        with open(path, newline='') as f:
+            out = []
+            reader = csv.reader(f)
+            data = list(reader)
+            for row in data[1:]:
+                out.append((row[1], parse_label(row[2])))
+        return out
 
 
     def __len__(self):
