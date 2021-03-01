@@ -42,7 +42,8 @@ class CellDataset(Dataset):
 
     def parse_label(label):
         vec_ind = label.split("|")
-        out = [int(str(x) in vec_ind) for x in range(19)]
+        bool_out = [str(x) in vec_ind for x in range(19)]
+        out = [int(bool) for bool in bool_out]
         return out
 
     def parsing_csv(path):
