@@ -36,7 +36,6 @@ class CellDataset(Dataset):
         return bbs
 
     def __getitem__(self, item):
-        # FIXME get id from csv at line item
         id, weak_labels = self.csv[item]
 
         masks = np.load("{}/{}.npz".format(self.mask_path, id))['arr_0']
@@ -72,12 +71,12 @@ class CellDataset(Dataset):
 
         boxes = torch.as_tensor(bbs, dtype=torch.float)
         # FIXME: What to specify here?
-        gt_classes = torch.zeros(num_cells, dtype=torch.int64)
+        gt_classes = torch.ones(num_cells, dtype=torch.int64)
 
         masks = np.stack(binary_masks)
         masks = torch.as_tensor(masks, dtype=torch.uint8)
 
-        tensor_image = torch.stack([b, g, r, y])
+        tensor_image = torch.stack([b + r, g, y]).squeeze(1) # we can have max 3 channels, hence we added b + r
 
         target = {
             "boxes": boxes,
@@ -86,12 +85,17 @@ class CellDataset(Dataset):
             "image_id": id,
             "masks": masks,
         }
-        return tensor_image, target
+        return tensor_image, torch.LongTensor(weak_labels), target
+
 
     def _parse_label(self, label):
         vec_ind = label.split("|")
-        bool_out = [str(x) in vec_ind for x in range(19)]
-        out = [int(bool) for bool in bool_out]
+        if vec_ind == ["18"]:
+            out = [0]*19
+        else:
+            bool_out = [str(x) in vec_ind for x in range(19)]
+            out = [int(bool) for bool in bool_out]
+        out = out
         return out
 
     def _parse_csv(self, path):
@@ -105,5 +109,5 @@ class CellDataset(Dataset):
 
 
     def __len__(self):
-        pass
+        return len(self.csv)
 
