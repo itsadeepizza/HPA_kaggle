@@ -1,4 +1,4 @@
-from torchvision.models.detection import maskrcnn_resnet50_fpn
+from .custom_mask_rcnn import maskrcnn_resnet50_fpn
 import torch.nn as nn
 
 class CustomBoxHead(nn.Module):

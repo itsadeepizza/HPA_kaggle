@@ -76,7 +76,7 @@ class CellDataset(Dataset):
         masks = np.stack(binary_masks)
         masks = torch.as_tensor(masks, dtype=torch.uint8)
 
-        tensor_image = torch.stack([b + r, g, y]).squeeze(1) # we can have max 3 channels, hence we added b + r
+        tensor_image = torch.stack([b + 3*r, g, y]).squeeze(1) # we can have max 3 channels, hence we added b + r
 
         target = {
             "boxes": boxes,
@@ -88,15 +88,24 @@ class CellDataset(Dataset):
         return tensor_image, torch.LongTensor(weak_labels), target
 
 
-    def _parse_label(self, label):
+    def _parse_label(self, label): #one hot encoding per soft margin loss
         vec_ind = label.split("|")
         if vec_ind == ["18"]:
-            out = [0]*19
+            out = [0]*18
         else:
-            bool_out = [str(x) in vec_ind for x in range(19)]
+            bool_out = [str(x) in vec_ind for x in range(18)]
             out = [int(bool) for bool in bool_out]
         out = out
         return out
+
+    # def _parse_label(self, label): #label encoding per margin loss
+    #     vec_ind = label.split("|")
+    #     vec_ind = [int(s) for s in vec_ind]
+    #     if vec_ind == ["18"]:
+    #         out = [-1]*18
+    #     else:
+    #         out = vec_ind + [-1]*(18 - len(vec_ind))
+    #     return out
 
     def _parse_csv(self, path):
         with open(path, newline='') as f:
